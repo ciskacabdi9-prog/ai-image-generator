@@ -1,1 +1,98 @@
 
+import { useState } from "react";
+import "./App.css";
+
+function App() {
+  const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const generateImage = async () => {
+    if (!prompt) return alert("Fadlan qoraal gali!");
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      setImageUrl(data.image_url);
+    } catch (error) {
+      console.error(error);
+      alert("Error generating image");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="App">
+      <h1>AI Image Generator</h1>
+
+      <div style={{ margin: "20px 0", border: "1px dashed #aaa", padding: "10px" }}>
+        Google AdSense Banner Top
+      </div>
+
+      <input
+        type="text"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Qor waxa aad rabto..."
+      />
+      <button onClick={generateImage}>{loading ? "Generating..." : "Generate"}</button>
+
+      {imageUrl && (
+        <div style={{ marginTop: "20px" }}>
+          <img src={imageUrl} alt="AI Result" style={{ maxWidth: "100%" }} />
+        </div>
+      )}
+
+      <div style={{ margin: "20px 0", border: "1px dashed #aaa", padding: "10px" }}>
+        Google AdSense Banner Bottom
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
+require("dotenv").config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.post("/generate-image", async (req, res) => {
+  const { prompt } = req.body;
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/images/generations",
+      { prompt, n: 1, size: "512x512" },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    res.json({ image_url: response.data.data[0].url });
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).send("Image generation failed");
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+
+
+
+
+
+
+
+
